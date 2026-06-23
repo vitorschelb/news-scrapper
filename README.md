@@ -4,30 +4,30 @@
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-Pipeline-blue?logo=githubactions)](https://github.com/features/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**NewsBot** é um scraper de notícias de tecnologia gratuito que coleta artigos de **TLDR AI** e **Hugging Face Blog**, resume com IA (Llama 3.3 70B via Groq) e envia 3x/dia no seu WhatsApp.
+**NewsBot** is a free news scraper that collects tech articles from **TLDR AI** and **Hugging Face Blog**, summarizes them with AI (Llama 3.3 70B via Groq), and delivers them to your WhatsApp 3x/day.
 
-> 🇧🇷 Projeto 100% em português, feito por dev pra dev.
+> 🇧🇷 Dashboard UI in Portuguese (pt-BR), codebase in English.
 
 ---
 
-## ✨ Funcionalidades
+## Features
 
-- **🤖 Scraping automático** — RSS + fallback HTML
-- **🧠 Resumo por IA** — Groq (Llama 3.3 70B), grátis, sem cartão de crédito
-- **📱 Entrega no WhatsApp** — 3x/dia (08h, 12h, 18h BRT)
-- **📊 Dashboard web** — Next.js 15 + Tailwind + shadcn/ui (dark mode)
-- **🔧 Configurável** — Fontes, horários, número do WhatsApp
-- **💰 Custo zero** — Groq free, Supabase free, Vercel Hobby, GitHub Actions free
-- **🥟 Bun runtime** — Mais rápido que Node.js, `bunx` no lugar de `npx`
+- **🤖 Auto Scraping** — RSS + HTML fallback with Axios + Cheerio
+- **🧠 AI Summaries** — Groq (Llama 3.3 70B), free, no credit card
+- **📱 WhatsApp Delivery** — 3x/day (08h, 12h, 18h BRT)
+- **📊 Web Dashboard** — Next.js 15 + Tailwind + shadcn/ui (dark mode)
+- **🔧 Configurable** — Sources, schedules, WhatsApp number
+- **💰 Zero Cost** — Groq free, Supabase free, Vercel Hobby, GitHub Actions free
+- **🥟 Bun Runtime** — 4x faster than Node.js, `bunx` instead of `npx`
 
-## 🏗️ Arquitetura
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   GitHub Actions (cron)                   │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐   │
-│  │ Scraper  │→ │ Groq IA  │→ │ WhatsApp (wwebjs)    │   │
-│  │(Axios+   │  │(Resumo)  │  │(Puppeteer)           │   │
+│  │ Scraper  │→ │ Groq AI  │→ │ WhatsApp (wwebjs)    │   │
+│  │(Axios+   │  │(Summary) │  │(Puppeteer)           │   │
 │  │ Cheerio) │  │          │  │                      │   │
 │  └────┬─────┘  └────┬─────┘  └─────────┬────────────┘   │
 │       │             │                  │                 │
@@ -40,168 +40,179 @@
 └────────────────────────┼─────────────────────────────────┘
                          │
                   ┌──────▼───────┐
-                  │  Vercel      │ ← Dashboard Next.js
+                  │  Vercel      │ ← Next.js Dashboard
                   │  (Hobby)     │
                   └──────────────┘
 ```
 
-## 🚀 Stack
+## Stack
 
-| Camada | Tecnologia | Por quê |
-|--------|-----------|---------|
-| **Runtime** | Bun 1.x | 4x mais rápido que Node.js, `bunx` nativo |
-| **Frontend** | Next.js 15 + Tailwind + shadcn/ui | SSR, DX, componentes lindos |
-| **Database** | Supabase (PostgreSQL) + Prisma | 500MB free, ORM type-safe |
-| **Scraping** | Axios + Cheerio | Leve, sem headless browser |
-| **IA** | Groq API (Llama 3.3 70B) | 100K tokens/dia grátis |
-| **WhatsApp** | whatsapp-web.js | Gratuito, Puppeteer |
-| **CI/Agendamento** | GitHub Actions | 2000 min/mês grátis, Chrome incluso |
-| **Host** | Vercel (Hobby) | Deploy 1-clique, grátis |
+| Layer | Technology | Why |
+|--------|-----------|------|
+| **Runtime** | Bun 1.x | 4x faster than Node, built-in TS support |
+| **Frontend** | Next.js 15 + Tailwind + shadcn/ui | SSR, DX, beautiful components |
+| **Database** | Supabase (PostgreSQL) + Prisma | 500MB free, type-safe ORM |
+| **Scraping** | Axios + Cheerio | Lightweight, no headless browser needed |
+| **AI** | Groq API (Llama 3.3 70B) | 100K free tokens/day |
+| **WhatsApp** | whatsapp-web.js | Free, Puppeteer-based |
+| **CI/Scheduling** | GitHub Actions | 2000 free min/month, Chrome included |
+| **Hosting** | Vercel (Hobby) | 1-click deploy, free |
 
-## 📋 Pré-requisitos
+## Prerequisites
 
 - [Bun](https://bun.sh/) 1.x (`curl -fsSL https://bun.sh/install | bash`)
 - [Git](https://git-scm.com/)
 
-**Contas gratuitas necessárias:**
-- [Supabase](https://supabase.com/) — banco PostgreSQL
-- [Groq](https://console.groq.com/) — API de IA
-- [GitHub](https://github.com/) — repositório + Actions
-- [Vercel](https://vercel.com/) — deploy do dashboard
+**Free accounts needed:**
+- [Supabase](https://supabase.com/) — PostgreSQL database
+- [Groq](https://console.groq.com/) — AI API
+- [GitHub](https://github.com/) — repository + Actions
+- [Vercel](https://vercel.com/) — dashboard deploy
 
-## 🛠️ Setup local
+## Local Setup
 
 ```bash
 # 1. Clone
-git clone https://github.com/seu-usuario/news-scrapper.git
+git clone https://github.com/vitorschelb/news-scrapper.git
 cd news-scrapper
 
-# 2. Instalar dependências
+# 2. Install dependencies
 bun install
 
-# 3. Copiar .env e preencher
+# 3. Copy .env and fill in
 cp .env.example .env
-# Edite .env com suas credenciais (DATABASE_URL, GROQ_API_KEY, WHATSAPP_NUMBER)
+# Edit .env with your credentials (DATABASE_URL, GROQ_API_KEY, WHATSAPP_NUMBER)
 
-# 4. Gerar Prisma Client e criar tabelas
+# 4. Generate Prisma Client and sync schema
 bunx prisma generate
 bunx prisma db push
 
-# 5. Seed (dados iniciais: fontes TLDR + Hugging Face)
+# 5. Seed (initial data: TLDR + Hugging Face sources)
 bun run db:seed
 
-# 6. Rodar o dashboard
+# 6. Run the dashboard
 bun run dev
-# Acesse: http://localhost:3000
+# Access: http://localhost:3000
 ```
 
-## 🚢 Deploy
+## Deploy
 
 ### 1. Supabase
-1. Crie conta em [supabase.com](https://supabase.com/)
-2. Novo projeto → anote a `Database connection string` (transaction mode, porta 6543)
+1. Create account at [supabase.com](https://supabase.com/)
+2. New project → copy `Database connection string` (transaction mode, port 6543)
 
 ### 2. Groq
-1. Acesse [console.groq.com/keys](https://console.groq.com/keys)
-2. Crie uma API key (gratuita)
+1. Go to [console.groq.com/keys](https://console.groq.com/keys)
+2. Create a free API key
 
 ### 3. GitHub
 ```bash
-# O repositório já está com git init feito
+# Repo already has git init — just push
 gh repo create news-scrapper --public --push
 ```
 
 ### 4. GitHub Secrets
-No repositório > Settings > Secrets and variables > Actions:
+In repo > Settings > Secrets and variables > Actions:
 
-| Secret | Valor |
+| Secret | Value |
 |--------|-------|
-| `DATABASE_URL` | `postgresql://postgres:...` (do Supabase) |
-| `GROQ_API_KEY` | `gsk_...` (do Groq) |
-| `WHATSAPP_NUMBER` | `5511999999999` (seu número) |
+| `DATABASE_URL` | `postgresql://postgres:...` (from Supabase) |
+| `GROQ_API_KEY` | `gsk_...` (from Groq) |
+| `WHATSAPP_NUMBER` | `5511999999999` (your number) |
 
 ### 5. Vercel
-1. Acesse [vercel.com/new](https://vercel.com/new)
-2. Importe o repositório
-3. Adicione `DATABASE_URL` nas variáveis de ambiente
+1. Go to [vercel.com/new](https://vercel.com/new)
+2. Import the repository
+3. Add `DATABASE_URL` to environment variables
 4. Deploy! 🎉
 
 ### 6. WhatsApp QR Code
-Na primeira execução do GitHub Actions, ele vai gerar um QR code. Você precisa:
-1. Ir em Actions > Daily News Pipeline > manual run
-2. Ver o QR code nos logs
-3. Escanear com WhatsApp > Dispositivos Conectados
+On first GitHub Actions run, it generates a QR code:
+1. Go to Actions > Daily News Pipeline > Run workflow
+2. Check workflow logs for the QR code
+3. Scan with WhatsApp > Linked Devices
 
-A sessão fica salva para as próximas execuções.
+The session is saved for subsequent runs.
 
-## 📁 Estrutura do Projeto
+## Project Structure
 
 ```
 .
 ├── .github/workflows/
-│   └── daily-news.yml          # Pipeline 3x/dia
+│   └── daily-news.yml          # 3x/day pipeline
+├── AGENTS.md                   # AI agent instructions (Next.js official)
+├── CLAUDE.md                   # Technology-specific rules
 ├── prisma/
-│   ├── schema.prisma           # Schema do banco (5 modelos)
-│   └── seed.ts                 # Dados iniciais
+│   ├── schema.prisma           # DB schema (5 models)
+│   └── seed.ts                 # Initial data
 ├── scripts/
-│   └── run-pipeline.ts         # Script da pipeline
+│   └── run-pipeline.ts         # Pipeline script
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx            # Home / Dashboard
-│   │   ├── fontes/page.tsx     # Fontes de notícias
-│   │   ├── agendamento/page.tsx# Horários de entrega
-│   │   ├── historico/page.tsx  # Log de envios
-│   │   ├── configuracoes/page.tsx # Configurações
+│   │   ├── fontes/page.tsx     # News sources
+│   │   ├── agendamento/page.tsx# Delivery schedule
+│   │   ├── historico/page.tsx  # Delivery history
+│   │   ├── configuracoes/page.tsx # Settings
 │   │   ├── layout.tsx          # Root layout + sidebar
 │   │   ├── globals.css         # Tailwind + CSS variables
 │   │   └── api/
-│   │       ├── sites/          # CRUD fontes
-│   │       ├── config/         # Config global
-│   │       ├── articles/       # Lista artigos
-│   │       ├── stats/          # Estatísticas
-│   │       └── pipeline/       # Disparo manual
+│   │       ├── sites/          # Sources CRUD
+│   │       ├── config/         # Global config
+│   │       ├── articles/       # Articles list
+│   │       ├── stats/          # Statistics
+│   │       └── pipeline/       # Manual trigger
 │   ├── components/
 │   │   ├── ui/                 # shadcn/ui components
-│   │   ├── sidebar.tsx         # Navegação
+│   │   ├── sidebar.tsx         # Navigation
 │   │   ├── theme-provider.tsx  # Dark mode
-│   │   └── theme-toggle.tsx    # Botão tema
+│   │   └── theme-toggle.tsx    # Theme button
 │   └── lib/
 │       ├── prisma.ts           # Prisma singleton
-│       ├── scraper.ts          # Scraper RSS/HTML
-│       ├── summarizer.ts       # Resumo com Groq
-│       ├── whatsapp.ts         # Envio WhatsApp
+│       ├── scraper.ts          # RSS/HTML scraper
+│       ├── summarizer.ts       # Groq AI summary
+│       ├── whatsapp.ts         # WhatsApp sender
 │       └── utils.ts            # cn() helper
 ├── .env.example
 ├── .gitignore
-├── bun.lockb                   # Lockfile do Bun
+├── bun.lockb                   # Bun lockfile
 ├── next.config.ts
 ├── package.json
 ├── tailwind.config.ts
 └── tsconfig.json
 ```
 
-## 💰 Custos (R$ 0,00/mês)
+## Costs (R$ 0,00/month)
 
-| Serviço | Plano | Limite | Uso esperado |
-|---------|-------|--------|-------------|
-| Groq API | Free | 100K tokens/dia | ~1.800 tokens/dia (1,8%) |
-| Supabase | Free | 500MB, 50k linhas | < 1MB/mês |
-| GitHub Actions | Free | 2000 min/mês | ~30 min/mês |
-| Vercel | Hobby | 100h/mês | < 10h/mês |
-| whatsapp-web.js | Grátis | — | 3 msg/dia |
+| Service | Plan | Limit | Expected Usage |
+|---------|------|-------|----------------|
+| Groq API | Free | 100K tokens/day | ~1,800 tokens/day (1.8%) |
+| Supabase | Free | 500MB, 50k rows | < 1MB/month |
+| GitHub Actions | Free | 2000 min/month | ~30 min/month |
+| Vercel | Hobby | 100h/month | < 10h/month |
+| whatsapp-web.js | Free | — | 3 msg/day |
 
-## ⚠️ Avisos
+## Warnings
 
-- **whatsapp-web.js** não é oficial. Viola ToS do WhatsApp em teoria. Use número secundário.
-- **Supabase** pausa projetos inativos após 7 dias. O keep-alive no GitHub Actions previne.
-- **QR code** necessário na primeira execução. Após isso, sessão é persistida.
+- **whatsapp-web.js** is unofficial. Technically violates WhatsApp ToS. Use a secondary number.
+- **Supabase** pauses inactive projects after 7 days. GitHub Actions keep-alive prevents this.
+- **QR code** needed on first run only. Session is persisted afterward.
 
-## 📄 Licença
+## AI Agent Rules
 
-MIT — Use, modifique, compartilhe.
+This project includes configuration files for AI coding agents:
+
+- **`AGENTS.md`** — Next.js official pattern: tells agents to use bundled docs
+  at `node_modules/next/dist/docs/` instead of training data.
+- **`CLAUDE.md`** — Technology-specific rules for Next.js, Prisma, Supabase,
+  GitHub Actions, Vercel, Cheerio, Groq API, and whatsapp-web.js.
+
+## License
+
+MIT — Use, modify, share.
 
 ---
 
 <p align="center">
-  Feito com ☕ por <a href="https://github.com/seu-usuario">você</a>
+  Built with ☕ by <a href="https://github.com/vitorschelb">vitorschelb</a>
 </p>
