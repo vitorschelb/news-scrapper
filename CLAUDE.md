@@ -455,3 +455,54 @@ const client = new Client({
 
 ### Color Tokens
 Use only CSS variable colors: `bg-background`, `text-foreground`, `bg-primary`, `text-muted-foreground`, `border-border`
+
+---
+
+## Conventional Commits (Versionamento)
+
+### Official Spec
+- https://www.conventionalcommits.org/en/v1.0.0/
+
+### Commit Message Format
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+### Types
+| Type | When to use |
+|------|-------------|
+| `feat` | New feature, component, page, or endpoint |
+| `fix` | Bug fix, error correction |
+| `refactor` | Code change without behavior change (renaming, restructuring) |
+| `chore` | Dependencies, config files, build tooling |
+| `docs` | Documentation only (README, AGENTS.md, CLAUDE.md) |
+| `style` | Formatting, spacing, CSS/Tailwind changes (no logic change) |
+| `test` | Adding or updating tests |
+| `perf` | Performance optimization |
+| `ci` | CI/CD workflow changes |
+
+### Examples
+```
+feat(scraper): add HTML fallback parsing with Cheerio
+fix(whatsapp): handle QR code timeout gracefully
+refactor(api): extract pagination logic into reusable hook
+chore(deps): upgrade Prisma to v7
+docs(readme): update deployment checklist
+style(card): adjust padding on mobile breakpoints
+perf(images): add lazy loading to article thumbnails
+ci(actions): pin checkout action to SHA
+```
+
+### Rules
+- Use lowercase, no period at end
+- Scope is optional but encouraged (`feat(api):`, `fix(scraper):`)
+- Description is imperative mood: "add", "fix", "implement" — NOT "added", "fixed"
+- Body wraps at 72 characters, explains WHAT and WHY (not HOW)
+
+### Pull Request Template
+Use the template at `.github/PULL_REQUEST_TEMPLATE.md` when creating PRs.
+Group changes by category: features, UI/UX, technical improvements.
