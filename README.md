@@ -18,6 +18,7 @@
 - **📊 Dashboard web** — Next.js 15 + Tailwind + shadcn/ui (dark mode)
 - **🔧 Configurável** — Fontes, horários, número do WhatsApp
 - **💰 Custo zero** — Groq free, Supabase free, Vercel Hobby, GitHub Actions free
+- **🥟 Bun runtime** — Mais rápido que Node.js, `bunx` no lugar de `npx`
 
 ## 🏗️ Arquitetura
 
@@ -48,6 +49,7 @@
 
 | Camada | Tecnologia | Por quê |
 |--------|-----------|---------|
+| **Runtime** | Bun 1.x | 4x mais rápido que Node.js, `bunx` nativo |
 | **Frontend** | Next.js 15 + Tailwind + shadcn/ui | SSR, DX, componentes lindos |
 | **Database** | Supabase (PostgreSQL) + Prisma | 500MB free, ORM type-safe |
 | **Scraping** | Axios + Cheerio | Leve, sem headless browser |
@@ -58,8 +60,7 @@
 
 ## 📋 Pré-requisitos
 
-- [Node.js](https://nodejs.org/) 20+
-- [npm](https://www.npmjs.com/)
+- [Bun](https://bun.sh/) 1.x (`curl -fsSL https://bun.sh/install | bash`)
 - [Git](https://git-scm.com/)
 
 **Contas gratuitas necessárias:**
@@ -76,21 +77,21 @@ git clone https://github.com/seu-usuario/news-scrapper.git
 cd news-scrapper
 
 # 2. Instalar dependências
-npm install
+bun install
 
 # 3. Copiar .env e preencher
 cp .env.example .env
 # Edite .env com suas credenciais (DATABASE_URL, GROQ_API_KEY, WHATSAPP_NUMBER)
 
 # 4. Gerar Prisma Client e criar tabelas
-npx prisma generate
-npx prisma db push
+bunx prisma generate
+bunx prisma db push
 
 # 5. Seed (dados iniciais: fontes TLDR + Hugging Face)
-npm run db:seed
+bun run db:seed
 
 # 6. Rodar o dashboard
-npm run dev
+bun run dev
 # Acesse: http://localhost:3000
 ```
 
@@ -106,9 +107,7 @@ npm run dev
 
 ### 3. GitHub
 ```bash
-git init
-git add .
-git commit -m "🎉 initial commit: news scrapper + whatsapp bot + dashboard"
+# O repositório já está com git init feito
 gh repo create news-scrapper --public --push
 ```
 
@@ -174,6 +173,7 @@ A sessão fica salva para as próximas execuções.
 │       └── utils.ts            # cn() helper
 ├── .env.example
 ├── .gitignore
+├── bun.lockb                   # Lockfile do Bun
 ├── next.config.ts
 ├── package.json
 ├── tailwind.config.ts
