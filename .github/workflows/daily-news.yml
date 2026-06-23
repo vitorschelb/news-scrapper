@@ -1,0 +1,86 @@
+# ============================================================
+# daily-news.yml — Pipeline de notícias 3x/dia
+# ============================================================
+# Por que: GitHub Actions é gratuito (2000 min/mês) e tem
+# Chrome/Puppeteer instalado, necessário pro WhatsApp.
+# Roda 3x/dia: 08h, 12h, 18h BRT.
+#
+# ⚠️ O pipeline NÃO roda em Vercel porque:
+#   - Vercel cron tem timeout de 60s (insuficiente)
+#   - Vercel não tem Chrome (necessário pra whatsapp-web.js)
+#   - GitHub Actions tem 6h de timeout e Chrome incluso
+# ============================================================
+
+name: Daily News Pipeline
+
+on:
+  # Agendado: 3x/dia em horário comercial brasileiro
+  schedule:
+    - cron: "0 11 * * *"  # 08:00 BRT (UTC-3)
+    - cron: "0 15 * * *"  # 12:00 BRT
+    - cron: "0 21 * * *"  # 18:00 BRT
+  # Permite execução manual via GitHub UI
+  workflow_dispatch:
+
+# Permite commit da sessão WhatsApp de volta ao repositório
+permissions:
+  contents: write
+
+jobs:
+  pipeline:
+    name: Scrape → Summarize → WhatsApp
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          # Por que: Precisamos do histórico completo pra fazer
+          # commit da sessão WhatsApp depois
+          fetch-depth: 0
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 🔧 Instalar dependências
+        run: npm ci
+
+      - name: 📐 Gerar Prisma Client
+        run: npx prisma generate
+
+      - name: 🗄️ Rodar migrations (cria tabelas se não existirem)
+        run: npx prisma db push --accept-data-loss
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: 🌱 Seed (dados iniciais)
+        run: npx tsx prisma/seed.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: 🚀 Executar pipeline
+        run: npx tsx scripts/run-pipeline.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          WHATSAPP_NUMBER: ${{ secrets.WHATSAPP_NUMBER }}
+
+      # Por que: whatsapp-web.js salva a sessão em .wwebjs_auth/.
+      # Commitar esse diretório garante que não precisamos
+      # escanear QR code de novo a cada execução.
+      - name: 💾 Salvar sessão do WhatsApp
+        run: |
+          if [ -d ".wwebjs_auth" ]; then
+            git config user.name "news-bot"
+            git config user.email "bot@news-scrapper.vercel.app"
+            git add .wwebjs_auth/
+            # Só commita se houver mudanças (evita erro)
+            git diff --staged --quiet || git commit -m "🤖 chore: atualiza sessão WhatsApp [skip ci]"
+            git push
+            echo "✅ Sessão WhatsApp salva no repositório"
+          else
+            echo "ℹ️  Nenhuma sessão WhatsApp para salvar"
+          fi

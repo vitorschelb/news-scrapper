@@ -1,0 +1,114 @@
+// ============================================================
+// Prisma Schema — News Scrapper
+// ============================================================
+// Monitoramos: fontes (CrawledSite), artigos (Article),
+// resumos (Summary), envios (SendLog) e configurações (AppConfig).
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Supabase usa a porta 6543 (transaction mode).
+  // Para evitar warning do Prisma, definimos connectionLimit.
+}
+
+// ------------------------------------------------------------
+// AppConfig — Configurações globais do app
+// ------------------------------------------------------------
+// Por que: Em vez de arquivo de config, usamos tabela pra
+// permitir alteração via dashboard sem deploy.
+model AppConfig {
+  id            String   @id @default("default") // sempre "default" — singleton
+  // Horários de entrega no formato JSON: ["08:00","12:00","18:00"]
+  deliveryTimes String   @default("[\"08:00\",\"12:00\",\"18:00\"]")
+  // Número do WhatsApp no formato internacional (ex: 5511999999999)
+  whatsappNumber String  @default("")
+  updatedAt     DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// CrawledSite — Fonte de notícias configurável
+// ------------------------------------------------------------
+// Por que: O usuário pode adicionar/remover fontes pelo dashboard.
+// Cada fonte tem um feed RSS e/ou um scraper HTML customizado.
+model CrawledSite {
+  id        String   @id @default(cuid())
+  name      String   // Nome amigável ex: "TLDR AI"
+  url       String   // URL do site (para exibição)
+  feedUrl   String?  // URL do feed RSS (se houver)
+  // Tipo de scraper: "rss" | "html"
+  // "rss" = parseia feed RSS/XML
+  // "html" = faz scrape com Cheerio
+  type      String   @default("rss")
+  // Seletor CSS para extrair artigos (usado quando type="html")
+  selector  String?
+  // Expressão cron opcional para override do schedule global
+  cronExpr  String?
+  isActive  Boolean  @default(true)
+  articles  Article[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// Article — Artigo bruto scrapeado
+// ------------------------------------------------------------
+// Por que: Precisamos armazenar o artigo original antes de
+// resumir, pra evitar re-scrape em caso de falha no resumo.
+model Article {
+  id          String   @id @default(cuid())
+  siteId      String
+  site        CrawledSite @relation(fields: [siteId], references: [id])
+  title       String   // Título do artigo
+  url         String   @unique // URL única (evita duplicatas)
+  content     String?  // Conteúdo extraído (texto limpo)
+  summary     Summary?
+  publishedAt DateTime? // Data de publicação original
+  createdAt   DateTime @default(now())
+
+  @@index([siteId])
+  @@index([createdAt])
+}
+
+// ------------------------------------------------------------
+// Summary — Resumo gerado por IA (Groq)
+// ------------------------------------------------------------
+// Por que: Separar Article de Summary permite re-gerar resumos
+// sem perder o artigo original.
+model Summary {
+  id        String   @id @default(cuid())
+  articleId String   @unique
+  article   Article  @relation(fields: [articleId], references: [id])
+  // Modelo usado para gerar (ex: "llama-3.3-70b-versatile")
+  model     String   @default("llama-3.3-70b-versatile")
+  // Resumo em pt-BR (~80 palavras, tom dev)
+  content   String
+  // Tokens gastos (monitoramento de uso gratuito)
+  tokensUsed Int     @default(0)
+  createdAt DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// SendLog — Log de envio pelo WhatsApp
+// ------------------------------------------------------------
+// Por que: Rastrear o que foi enviado, quando, e se deu erro.
+model SendLog {
+  id          String   @id @default(cuid())
+  summaryId   String
+  summary     Summary  @relation(fields: [summaryId], references: [id])
+  // Número que recebeu (whatsappNumber da config)
+  recipient   String
+  // "sent" | "failed"
+  status      String   @default("sent")
+  // Mensagem de erro se status = "failed"
+  errorMsg    String?
+  // Horário programado (ex: "08:00")
+  scheduledAt String?
+  sentAt      DateTime @default(now())
+
+  @@index([sentAt])
+}
