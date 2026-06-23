@@ -4,6 +4,200 @@ This file defines the technology-specific rules and best practices for AI coding
 
 ---
 
+## React Component Best Practices
+
+### Official Docs
+- React: https://react.dev/learn
+- React Compiler: https://react.dev/learn/react-compiler
+- Composition patterns (Next.js): https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns
+
+### Core Principles
+
+#### 1. Composition over Configuration
+Replace boolean-prop proliferation with explicit composed children:
+
+```typescript
+// ❌ Bad: boolean props explosion
+<Card variant="elevated" showHeader showFooter showBadge badgeText="New" />
+
+// ✅ Good: composition with children and slots
+<Card>
+  <CardHeader>
+    <Badge>New</Badge>
+    <CardTitle>Title</CardTitle>
+  </CardHeader>
+  <CardContent>Content</CardContent>
+  <CardFooter>
+    <Button>Action</Button>
+  </CardFooter>
+</Card>
+```
+
+#### 2. Server Components by Default
+- Every component starts as a Server Component (no `"use client"`)
+- Add `"use client"` ONLY when you need:
+  - Browser APIs (`localStorage`, `navigator`, etc.)
+  - React hooks (`useState`, `useEffect`, `useContext`)
+  - Event handlers (`onClick`, `onSubmit`, etc.)
+  - Custom hooks that use any of the above
+
+```typescript
+// Server Component — async, directly accesses DB
+export async function ArticleList() {
+  const articles = await prisma.article.findMany();
+  return <ul>{articles.map(a => <ArticleItem key={a.id} article={a} />)}</ul>;
+}
+
+// Client Component — needs interactivity
+"use client";
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return <Button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>Toggle</Button>;
+}
+```
+
+#### 3. Extract Logic into Custom Hooks
+Any repeated `useState` + `useEffect` pattern → custom hook:
+
+```typescript
+// Custom hook for data fetching
+function useFetch<T>(url: string) {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    fetch(url)
+      .then(res => res.json())
+      .then(setData)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [url]);
+
+  return { data, loading, error };
+}
+```
+
+#### 4. Compound Components for Flexible APIs
+Use `React.createContext` to share implicit state among related components:
+
+```typescript
+// Compound pattern: <Select> <Select.Item value="1">Option 1</Select.Item> </Select>
+const SelectContext = createContext<{ value: string; onChange: (v: string) => void } | null>(null);
+
+function Select({ children, value, onChange }: Props) {
+  return (
+    <SelectContext.Provider value={{ value, onChange }}>
+      <select className="..." value={value} onChange={e => onChange(e.target.value)}>
+        {children}
+      </select>
+    </SelectContext.Provider>
+  );
+}
+
+Select.Item = function SelectItem({ value, children }: { value: string; children: React.ReactNode }) {
+  return <option value={value}>{children}</option>;
+};
+```
+
+### Component File Organization
+
+#### One component = one file (except small closely-related groups)
+```
+src/components/
+  ui/           # Generic, reusable UI primitives (button, card, badge)
+  layout/       # Layout components (sidebar, navbar, footer)
+  features/     # Feature-specific components (article-list, summary-card)
+```
+
+#### File structure for each component:
+```typescript
+// 1. Imports (React, libraries, types)
+// 2. Types/Interfaces (Props)
+// 3. Component function (with JSDoc comment)
+// 4. displayName
+// 5. Default export
+
+interface ButtonProps {
+  variant?: "default" | "destructive" | "outline";
+  children: React.ReactNode;
+}
+
+/**
+ * Primary UI button with multiple variants.
+ * Uses cva() for variant management.
+ */
+function Button({ variant = "default", children }: ButtonProps) {
+  return <button className={buttonVariants({ variant })}>{children}</button>;
+}
+Button.displayName = "Button";
+```
+
+### Props Design Rules
+
+1. **Boolean props = red flag.** If you have 3+ boolean props, you need composition instead
+2. **Use `React.ReactNode` for children** — most flexible
+3. **Use `ComponentPropsWithoutRef<'button'>`** to extend native HTML attributes
+4. **Optional props = `?` in interface** — sensible defaults in destructuring
+5. **Event handlers follow `on[Event]` naming**: `onClick`, `onChange`, `onSubmit`
+
+```typescript
+// ✅ Good props interface
+interface DialogProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  description?: string; // optional
+}
+
+// ❌ Bad props interface (too many booleans)
+interface CardProps {
+  variant: "elevated" | "flat" | "outlined";
+  showHeader: boolean;
+  showFooter: boolean;
+  showBadge: boolean;
+  isHoverable: boolean;
+  isClickable: boolean;
+  isDraggable: boolean;
+}
+```
+
+### Performance Rules
+
+1. **`useMemo` and `useCallback` are LAST RESORT** — measure first, optimize second
+2. **Move state DOWN** — the component closest to where state is used should own it
+3. **Move state UP** — only when siblings need to share it (lift to nearest common ancestor)
+4. **Server Components are free** — they add zero JS to the client bundle
+5. **Suspense boundaries** for loading states, not ad-hoc `isLoading` checks
+
+### Accessibility (a11y) Minimums
+
+```typescript
+// Every interactive element needs:
+<button aria-label="Close dialog" onClick={onClose}>✕</button>
+
+// Every form input needs a label:
+<label htmlFor="email">Email</label>
+<input id="email" type="email" aria-describedby="email-hint" />
+<span id="email-hint">We'll never share your email.</span>
+
+// Images need alt text:
+<Image src="/logo.png" alt="NewsBot Logo" />
+
+// Use semantic HTML: <nav>, <main>, <section>, <article>, <aside>
+```
+
+### State Management Rules
+
+1. **Server state** (data from DB) → Prisma directly in Server Components
+2. **URL state** (current page, search params) → `useSearchParams`, `useParams`
+3. **Form state** → Server Actions with `useActionState` (React 19)
+4. **Global UI state** (theme, sidebar) → React Context (no Redux needed)
+5. **Never put server data in React state** — fetch fresh on each request instead
+
+---
+
 ## Next.js 15 (App Router)
 
 ### Official Docs
