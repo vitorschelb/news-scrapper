@@ -39,30 +39,29 @@ jobs:
           # commit da sessão WhatsApp depois
           fetch-depth: 0
 
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: 🥟 Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: "20"
-          cache: "npm"
+          bun-version: "latest"
 
       - name: 🔧 Instalar dependências
-        run: npm ci
+        run: bun install
 
       - name: 📐 Gerar Prisma Client
-        run: npx prisma generate
+        run: bunx prisma generate
 
       - name: 🗄️ Rodar migrations (cria tabelas se não existirem)
-        run: npx prisma db push --accept-data-loss
+        run: bunx prisma db push --accept-data-loss
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: 🌱 Seed (dados iniciais)
-        run: npx tsx prisma/seed.ts
+        run: bun run prisma/seed.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: 🚀 Executar pipeline
-        run: npx tsx scripts/run-pipeline.ts
+        run: bun run scripts/run-pipeline.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
